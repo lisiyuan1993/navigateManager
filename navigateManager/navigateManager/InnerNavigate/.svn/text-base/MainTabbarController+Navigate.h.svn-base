@@ -1,0 +1,23 @@
+/*****************************************
+ *作者: 丁业林
+ *日期: 2016-05-31
+ *描述: 控制功能模块的跳转
+ ******************************************/
+#import "MainTabbarController.h"
+
+@interface MainTabbarController (Navigate)
+
+/**
+ *  获取MainTabbarController
+ */
++ (MainTabbarController *)getMainTabbarController;
+
+/**
+ *  跳转至view controller
+ *
+ *  @param viewController 目标controller
+ *
+ */
++ (void)navigateToViewController:(UIViewController *)viewController;
+
+@end

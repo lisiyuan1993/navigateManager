@@ -1,0 +1,263 @@
+//
+//  CBModuleNavigateManager.m
+//  CBClient
+//
+//  Created by dingyl on 16/7/19.
+//  Copyright © 2016年 Nanjing Renrenbao Network Technology Co.,Ltd. All rights reserved.
+//
+
+#import "CBModuleNavigateManager.h"
+#import "MainTabbarController+Navigate.h"
+#import "OilCardTransactMainController.h"
+#import "CBRechargeMainController.h"
+#import "CBVehicleMaintenanceControlController.h"
+#import "CB_SHCController.h"
+#import "DriveContainerController.h"
+#import "SpreadIncomeViewController.h"
+#import "CBOilCardRechargeOrdersController.h"
+#import "DriveTripDetailViewController.h"
+#import "CBDocumentMainCotroller.h"
+#import "MSMainController.h"
+#import "IncomeLotteryController.h"
+#import "CBDSignInViewController.h"
+
+NSString *const module_AutoInsurance = @"AutoInsuranceDeduction";//保险购买
+NSString *const module_TransactOilCard = @"TransactOilCard";//办理油卡
+NSString *const module_RefuelRecharge = @"RefuelRecharge";//充值加油
+NSString *const module_VehicleMaintenance = @"VehicleMaintenance";//车损咨询
+NSString *const module_SecondHandCar = @"SecondHandCar";//二手车
+NSString *const module_Coupons = @"Coupons";//优惠券
+NSString *const module_DrivingHistory = @"DrivingHistory";//行车历史
+NSString *const module_WithdrawCash = @"WithdrawCash";//现金提现
+NSString *const module_OilCardRechargeRecord = @"OilCardRechargeRecord";//油卡充值记录
+NSString *const module_DrivingDetail = @"DrivingDetail";//行车详情
+NSString *const module_Credentials = @"Credentials";//证件中心
+NSString *const module_Messages = @"MessageCenter";//消息中心
+NSString *const module_DrawLottery = @"DrawLottery";//抽奖
+NSString *const module_SignIn = @"SignIn";//签到
+
+#pragma mark - 跳转处理
+
+@interface CBModuleNavigateModel : NSObject
+
+@property (copy, nonatomic) NSString *identifier;
+@property (copy, nonatomic) UIViewController*(^viewControllerBlock)(NSDictionary *params);
+
+@end
+
+@implementation CBModuleNavigateModel
+
+@end
+
+#pragma mark - 跳转url解析对象
+
+@interface CBInnerNavigateModel : NSObject
+
+/**
+ *  跳转标识符
+ */
+@property (nonatomic, copy) NSString *identifier;
+
+/**
+ *  跳转携带参数
+ */
+@property (nonatomic, strong) NSDictionary *params;
+
+@end
+
+@implementation CBInnerNavigateModel
+
+@end
+
+#pragma mark - 跳转manager
+
+@interface CBModuleNavigateManager ()
+
+@property (nonatomic, strong) NSMutableDictionary *map;
+
+@end
+
+@interface CBModuleNavigateManager (Parse)
+
+/**
+ *  解析跳转链接,返回值可nil
+ */
++ (CBInnerNavigateModel *)parseNavigateURL:(NSString *)urlStr;
+
+@end
+
+@implementation CBModuleNavigateManager
+
+//TODO: 返回优惠券功能
++ (instancetype)shareInstance {
+    static CBModuleNavigateManager *shareInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        shareInstance = [[CBModuleNavigateManager alloc] init];
+        //办理油卡
+        [shareInstance registerIdetifier:module_TransactOilCard viewController:^UIViewController *(NSDictionary *params) {
+            return [OilCardTransactMainController controller];
+        }];
+        //充值加油
+        [shareInstance registerIdetifier:module_RefuelRecharge viewController:^UIViewController *(NSDictionary *params) {
+            return [CBRechargeMainController rechargeMainController];
+        }];
+        //车险抵扣
+        [shareInstance registerIdetifier:module_AutoInsurance viewController:^UIViewController *(NSDictionary *params) {
+            NSString *token = [UserCenter userCenter].currentUser.token;
+            if (token) {
+                #if defined(AppModeProduct)
+                #define WebHTTPServerBaseURL @"https://app.chebao.com.cn/CheBao/"
+                #elif defined(AppModeTest)
+                #define WebHTTPServerBaseURL @"http://test1app.chebao.com.cn:8080/CheBao/"
+                #elif defined(AppModeDevelopment)
+                #define WebHTTPServerBaseURL @"http://192.168.2.172:8081/CheBao/"
+                #endif
+                NSString *url = [NSString stringWithFormat:@"%@springViews/insurance/index.html#/insurance/%@/",WebHTTPServerBaseURL,token];
+                CBClientWebController *webController = [[CBClientWebController alloc] initWithURL:url title:@"购买车险"];
+                webController.isNeedHover = YES;
+                return webController;
+            }
+            return nil;
+        }];
+        //车损咨询
+        [shareInstance registerIdetifier:module_VehicleMaintenance viewController:^UIViewController *(NSDictionary *params) {
+            return [CBVehicleMaintenanceControlController controller];
+        }];
+        //二手车
+        [shareInstance registerIdetifier:module_SecondHandCar viewController:^UIViewController *(NSDictionary *params) {
+            return [CB_SHCController controller];
+        }];
+        //优惠券
+        [shareInstance registerIdetifier:module_Coupons viewController:^UIViewController *(NSDictionary *params) {
+            return nil;
+        }];
+        //行车历史
+        [shareInstance registerIdetifier:module_DrivingHistory viewController:^UIViewController *(NSDictionary *params) {
+            [DriveContainerController showHistoriesView];
+            return nil;
+        }];
+        //现金提现
+        [shareInstance registerIdetifier:module_WithdrawCash viewController:^UIViewController *(NSDictionary *params) {
+            return [SpreadIncomeViewController controller];
+        }];
+        //油卡充值记录
+        [shareInstance registerIdetifier:module_OilCardRechargeRecord viewController:^UIViewController *(NSDictionary *params) {
+            return [CBOilCardRechargeOrdersController controller];
+        }];
+        //行车详情
+        [shareInstance registerIdetifier:module_DrivingDetail viewController:^UIViewController *(NSDictionary *params) {
+            NSString *startTime = params[@"start_time"];
+            NSString *endTime = params[@"end_time"];
+            return [DriveTripDetailViewController controllerWithStartTime:startTime endTime:endTime];
+        }];
+        //证件中心
+        [shareInstance registerIdetifier:module_Credentials viewController:^UIViewController *(NSDictionary *params) {
+            return [CBDocumentMainCotroller constructDocumentMainCotroller];
+        }];
+        //消息中心
+        [shareInstance registerIdetifier:module_Messages viewController:^UIViewController *(NSDictionary *params) {
+            MSMainController *messageController = [MSMainController constructMainController];
+            messageController.selectType = params[@"type"];
+            return messageController;
+        }];
+        //抽奖
+        [shareInstance registerIdetifier:module_DrawLottery viewController:^UIViewController *(NSDictionary *params) {
+            IncomeLotteryController *incomeVC = [IncomeLotteryController controller];
+            return incomeVC;
+        }];
+        //签到
+        [shareInstance registerIdetifier:module_SignIn viewController:^UIViewController *(NSDictionary *params) {
+            CBDSignInViewController *incomeVC = [CBDSignInViewController controller];
+            return incomeVC;
+        }];
+    });
+    return shareInstance;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _map = [[NSMutableDictionary alloc] init];
+    }
+    return self;
+}
+
+- (void)registerIdetifier:(NSString *)identifier viewController:(UIViewController*(^)(NSDictionary *params))destViewController {
+    CBModuleNavigateModel *model = [[CBModuleNavigateModel alloc] init];
+    model.identifier = identifier;
+    model.viewControllerBlock = destViewController;
+    [self.map setValue:model forKey:identifier];
+}
+
+- (void)navigateByLinkUrl:(NSString *)linkUrl {
+    if (!linkUrl || [linkUrl isEqualToString:@""]) {
+        return;
+    }
+    if (![linkUrl hasPrefix:@"CBModule://"]) {
+        linkUrl = [NSString stringWithFormat:@"CBModule://%@",linkUrl];
+    }
+    CBInnerNavigateModel *model = [CBModuleNavigateManager parseNavigateURL:linkUrl];
+    NSString *identifier = model.identifier;
+    if (!identifier) {
+        return;
+    }
+    CBModuleNavigateModel *blockModel = self.map[identifier];
+    if (!blockModel) {
+        return;
+    }
+    UIViewController *viewController = blockModel.viewControllerBlock(model.params);
+    if (!viewController) {
+        return;
+    }
+    [MainTabbarController navigateToViewController:viewController];
+}
+
+@end
+
+#pragma mark - Parse
+
+@implementation CBModuleNavigateManager (Parse)
+
++ (CBInnerNavigateModel *)parseNavigateURL:(NSString *)urlStr {
+    static NSString *moduleIdentifier = @"CBModule://";
+    static NSString *paramIdentifier = @"json=";
+    
+    CBInnerNavigateModel *model = nil;
+    if (urlStr && [urlStr hasPrefix:moduleIdentifier] && urlStr.length > moduleIdentifier.length) {
+        model = [[CBInnerNavigateModel alloc] init];
+        
+        urlStr = [urlStr substringFromIndex:moduleIdentifier.length];
+        
+        NSString *identifier = nil;
+        
+        NSRange range = [urlStr rangeOfString:@"?"];
+        if (range.location != NSNotFound) {
+            identifier = [urlStr substringToIndex:range.location];
+            if (urlStr.length > range.location + range.length) {
+                urlStr = [urlStr substringFromIndex:range.location + range.length];
+                if ([urlStr hasPrefix:paramIdentifier] && urlStr.length > paramIdentifier.length) {
+                    urlStr = [urlStr substringFromIndex:paramIdentifier.length];
+                    NSData *data = [urlStr dataUsingEncoding:NSUTF8StringEncoding];
+                    NSError *error = nil;
+                    @try {
+                        id obj = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
+                        if (!error && [obj isKindOfClass:[NSDictionary class]]) {
+                            model.params = (NSDictionary *)obj;
+                        }
+                    } @catch (NSException *exception) {
+                        
+                    }
+                }
+            }
+        }
+        else {
+            identifier = urlStr;
+        }
+        
+        model.identifier = identifier;
+    }
+    return model;
+}
+
+@end

@@ -1,0 +1,49 @@
+/*****************************************
+ *作者: 丁业林
+ *日期: 2016-07-19
+ *描述: 模块跳转管理类,相对于以前的集中管理，采用
+       模块加载模式。
+       对比MainTabbarController+Navigate.h
+       的跳转模式
+       该功能只负责跳转至本地已有功能
+ ******************************************/
+#import <Foundation/Foundation.h>
+
+extern NSString *const module_AutoInsurance;//保险购买
+extern NSString *const module_TransactOilCard;//办理油卡
+extern NSString *const module_RefuelRecharge;//充值加油
+extern NSString *const module_VehicleMaintenance;//车损咨询
+extern NSString *const module_SecondHandCar;//二手车
+extern NSString *const module_Coupons;//优惠券
+extern NSString *const module_DrivingHistory;//行车历史
+extern NSString *const module_WithdrawCash;//现金提现
+extern NSString *const module_OilCardRechargeRecord;//油卡充值记录
+extern NSString *const module_DrivingDetail;//行车详情
+extern NSString *const module_Credentials;//证件中心
+extern NSString *const module_Messages;//消息中心
+extern NSString *const module_DrawLottery;//抽奖
+extern NSString *const module_SignIn;//签到
+
+@interface CBModuleNavigateManager : NSObject
+
++ (instancetype)shareInstance;
+
+/**
+ *  注册模块
+ *
+ *  @param identifier 可处理的标识符
+ *  @param destViewController   目标view controller
+ *
+ */
+- (void)registerIdetifier:(NSString *)identifier
+           viewController:(UIViewController*(^)(NSDictionary *params))destViewController;
+
+/**
+ *  根据linkUrl跳转
+ *
+ *  @param linkUrl
+ *
+ */
+- (void)navigateByLinkUrl:(NSString *)linkUrl;
+
+@end
