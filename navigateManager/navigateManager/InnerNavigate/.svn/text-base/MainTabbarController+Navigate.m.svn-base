@@ -1,0 +1,35 @@
+//
+//  MainTabbarController+Navigate.m
+//  CBClient
+//
+//  Created by dingyl on 16/5/31.
+//  Copyright © 2016年 Nanjing Renrenbao Network Technology Co.,Ltd. All rights reserved.
+//
+
+#import "MainTabbarController+Navigate.h"
+#import "DriveContainerController.h"
+#import "SpreadIncomeViewController.h"
+#import "CBVehicleMaintenanceControlController.h"
+#import "APNSCenter.h"
+#import "CBRechargeMainController.h"
+#import "CBOilCardRechargeOrdersController.h"
+#import "OilCardTransactMainController.h"
+
+@implementation MainTabbarController (Navigate)
+
++ (MainTabbarController *)getMainTabbarController {
+    id obj = [UIApplication sharedApplication].delegate.window.rootViewController;
+    if ([obj isMemberOfClass:[MainTabbarController class]]) {
+        return (MainTabbarController *)obj;
+    }
+    return nil;
+}
+
++ (void)navigateToViewController:(UIViewController *)viewController {
+    MainTabbarController *tabController = [self getMainTabbarController];
+    UINavigationController *nav = tabController.selectedViewController;
+    viewController.hidesBottomBarWhenPushed = YES;
+    [nav pushViewController:viewController animated:YES];
+}
+
+@end
